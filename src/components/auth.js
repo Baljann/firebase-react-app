@@ -10,8 +10,6 @@ export const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  console.log(auth?.currentUser?.photoURL);
-
   const signIn = async () => {
     try {
       await createUserWithEmailAndPassword(auth, email, password);
@@ -28,7 +26,7 @@ export const Auth = () => {
     }
   };
 
-  const logOut = async () => {
+  const logout = async () => {
     try {
       await signOut(auth);
     } catch (err) {
@@ -51,7 +49,7 @@ export const Auth = () => {
 
       <button onClick={signInWithGoogle}>Sign in with Google</button>
 
-      <button onClick={logOut}>Logout</button>
+      <button onClick={logout}>Logout</button>
     </div>
   );
 };

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 import { Auth } from "./components/auth";
-import { dataBase } from "./config/firebase";
+import { dataBase, auth } from "./config/firebase";
 import {
   getDocs,
   collection,
@@ -24,13 +24,32 @@ function App() {
 
   const moviesCollectionRef = collection(dataBase, "movies");
 
+  const getMovieList = async () => {
+    try {
+      const data = await getDocs(moviesCollectionRef);
+      const filteredData = data.docs.map((doc) => ({
+        ...doc.data(),
+        id: doc.id,
+      }));
+      setMovieList(filteredData);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    getMovieList();
+  }, []);
+
   const onSubmitMovie = async () => {
     try {
       await addDoc(moviesCollectionRef, {
         title: newMovieTitle,
         releaseDate: newReleaseState,
         receivedAnOscar: isNewMovieOscar,
+        userId: auth?.currentUser?.uid,
       });
+      getMovieList();
     } catch (err) {
       console.error(err);
     }
@@ -45,23 +64,6 @@ function App() {
     const movieDoc = doc(dataBase, "movies", id);
     await updateDoc(movieDoc, { title: updatedTitle });
   };
-
-  useEffect(() => {
-    const getMovieList = async () => {
-      //READ THE DATA
-      try {
-        const data = await getDocs(moviesCollectionRef);
-        const filteredData = data.docs.map((doc) => ({
-          ...doc.data(),
-          id: doc.id,
-        }));
-        setMovieList(filteredData);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    getMovieList();
-  }, [onSubmitMovie]);
 
   //SET THE DATA
   return (
@@ -79,6 +81,7 @@ function App() {
         />
         <input
           type="checkbox"
+          checked={isNewMovieOscar}
           onChange={(e) => setIsNewMovieOscar(e.target.checked)}
         />
         <label>Received an Oscar</label>
@@ -99,6 +102,7 @@ function App() {
               onChange={(e) => setUpdatedTitle(e.target.value)}
             ></input>
             <button onClick={() => updateMovieTitle(movie.id)}>
+              {" "}
               Update title
             </button>
           </div>
